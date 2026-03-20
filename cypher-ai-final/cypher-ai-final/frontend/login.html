@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYPHER AI — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050a;--bg2:#070b14;--border:#112240;--b2:#1a3560;--cyan:#00e5ff;--cdim:rgba(0,229,255,.12);--cglow:0 0 28px rgba(0,229,255,.22);--red:#ff2d55;--text:#ccd6f6;--dim:#506080;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+body::after{content:'';position:fixed;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.3;animation:beam 7s linear infinite}
+@keyframes beam{0%{top:0}100%{top:100vh}}
+.box{position:relative;z-index:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:48px 44px;width:420px;box-shadow:var(--cglow);animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.logo{text-align:center;margin-bottom:36px}
+.logo-hex{width:52px;height:52px;border:2px solid var(--cyan);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:var(--cglow);background:var(--cdim)}
+.logo-name{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:.2em;color:var(--cyan)}
+.logo-tag{font-size:10px;color:var(--dim);letter-spacing:.22em;text-transform:uppercase;margin-top:4px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin-bottom:7px}
+.form-group input{width:100%;background:var(--bg);border:1px solid var(--b2);color:var(--text);padding:12px 14px;border-radius:4px;font-family:var(--sans);font-size:14px;outline:none;transition:all .18s}
+.form-group input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,229,255,.1)}
+.btn-login{width:100%;margin-top:8px;padding:14px;background:var(--cyan);border:none;border-radius:4px;color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;cursor:pointer;text-transform:uppercase;transition:all .18s}
+.btn-login:hover{background:#33eeff;box-shadow:var(--cglow)}
+.btn-login:disabled{opacity:.4;cursor:not-allowed}
+.error{display:none;background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.3);color:var(--red);padding:11px 14px;border-radius:4px;font-family:var(--mono);font-size:12px;margin-bottom:16px}
+.divider{text-align:center;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.12em;margin:20px 0;position:relative}
+.divider::before{content:'';position:absolute;left:0;top:50%;width:40%;height:1px;background:var(--border)}
+.divider::after{content:'';position:absolute;right:0;top:50%;width:40%;height:1px;background:var(--border)}
+.demo-note{text-align:center;font-size:11px;color:var(--dim);margin-top:20px;font-family:var(--mono)}
+.demo-note span{color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="logo-hex">
+      <svg width="26" height="26" viewBox="0 0 20 20" fill="none">
+        <path d="M10 2L17 6V14L10 18L3 14V6L10 2Z" stroke="#00e5ff" stroke-width="1.5" fill="rgba(0,229,255,.15)"/>
+        <circle cx="10" cy="10" r="2.5" fill="#00e5ff"/>
+      </svg>
+    </div>
+    <div class="logo-name">CYPHER AI</div>
+    <div class="logo-tag">Security Incident Response</div>
+  </div>
+
+  <div class="error" id="error-msg"></div>
+
+  <form onsubmit="doLogin(event)">
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="email" value="admin@cypher.ai" required autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="password" value="CypherAdmin123!" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-login" id="btn-login">ENTRAR</button>
+  </form>
+
+  <div class="divider">ou</div>
+
+  <button class="btn-login" style="background:rgba(0,229,255,.1);color:var(--cyan);border:1px solid rgba(0,229,255,.3)" onclick="demoLogin()">
+    ⚡ ENTRAR NO MODO DEMO
+  </button>
+
+  <div class="demo-note">
+    Demo: <span>admin@cypher.ai</span> / <span>CypherAdmin123!</span>
+  </div>
+</div>
+
+<script src="src/api.js"></script>
+<script>
+async function doLogin(e) {
+  e.preventDefault()
+  const btn = document.getElementById('btn-login')
+  const errEl = document.getElementById('error-msg')
+  errEl.style.display = 'none'
+  btn.disabled = true
+  btn.textContent = 'AUTENTICANDO...'
+
+  try {
+    const data = await CypherAPI.auth.login(
+      document.getElementById('email').value,
+      document.getElementById('password').value
+    )
+    if (data) {
+      CypherAPI.saveSession(data)
+      window.location.href = '/index.html'
+    } else {
+      // Demo mode - no backend
+      demoLogin()
+    }
+  } catch(err) {
+    errEl.textContent = err.message || 'Erro ao conectar com o servidor'
+    errEl.style.display = 'block'
+    btn.disabled = false
+    btn.textContent = 'ENTRAR'
+  }
+}
+
+function demoLogin() {
+  // Demo session without backend
+  const demoUser = {
+    id: 'demo-user',
+    email: 'admin@cypher.ai',
+    full_name: 'Admin CYPHER AI',
+    role: 'org_admin',
+    organization_id: 'demo-org'
+  }
+  localStorage.setItem('cypher_user', JSON.stringify(demoUser))
+  localStorage.setItem('cypher_access_token', 'demo-token')
+  localStorage.setItem('cypher_refresh_token', 'demo-refresh')
+  window.location.href = '/index.html'
+}
+
+// Already logged in?
+if (CypherAPI.isLoggedIn()) window.location.href = '/index.html'
+</script>
+</body>
+</html>

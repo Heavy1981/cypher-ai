@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160" width="480" height="160">
+  <defs>
+    <!-- Background -->
+    <rect id="bg" width="480" height="160" rx="12" fill="#03050a"/>
+    
+    <!-- Cyan glow filter -->
+    <filter id="glow-cyan" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Strong glow -->
+    <filter id="glow-strong" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Soft glow for text -->
+    <filter id="glow-text" x="-20%" y="-40%" width="140%" height="180%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Grid pattern -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,229,255,0.04)" stroke-width="0.5"/>
+    </pattern>
+
+    <!-- Cyan gradient for icon -->
+    <linearGradient id="cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#0088cc"/>
+    </linearGradient>
+
+    <!-- Icon fill gradient -->
+    <linearGradient id="icon-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#00e5ff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#003366" stop-opacity="0.1"/>
+    </linearGradient>
+
+    <!-- Text gradient -->
+    <linearGradient id="text-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#ffffff"/>
+      <stop offset="60%"  stop-color="#e0f4ff"/>
+      <stop offset="100%" stop-color="#00e5ff"/>
+    </linearGradient>
+
+    <!-- Clip -->
+    <clipPath id="clip-bg">
+      <rect width="480" height="160" rx="12"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="480" height="160" rx="12" fill="#03050a"/>
+  
+  <!-- Grid overlay -->
+  <rect width="480" height="160" rx="12" fill="url(#grid)" clip-path="url(#clip-bg)"/>
+
+  <!-- Subtle corner accent top-left -->
+  <path d="M0 0 L60 0 L0 60 Z" fill="rgba(0,229,255,0.04)" clip-path="url(#clip-bg)"/>
+  <!-- Subtle corner accent bottom-right -->
+  <path d="M480 160 L420 160 L480 100 Z" fill="rgba(0,229,255,0.04)" clip-path="url(#clip-bg)"/>
+
+  <!-- Horizontal divider line (faint) -->
+  <line x1="0" y1="159.5" x2="480" y2="159.5" stroke="rgba(0,229,255,0.12)" stroke-width="1"/>
+  <line x1="0" y1="0.5"   x2="480" y2="0.5"   stroke="rgba(0,229,255,0.12)" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- ICON — Hexagonal Shield / Cipher Mark  -->
+  <!-- ═══════════════════════════════════════ -->
+  <g transform="translate(44, 80)">
+
+    <!-- Outer hex glow layer -->
+    <polygon
+      points="0,-46 39.8,-23 39.8,23 0,46 -39.8,23 -39.8,-23"
+      fill="none"
+      stroke="rgba(0,229,255,0.18)"
+      stroke-width="1"
+      filter="url(#glow-cyan)"
+    />
+
+    <!-- Outer hex border -->
+    <polygon
+      points="0,-42 36.4,-21 36.4,21 0,42 -36.4,21 -36.4,-21"
+      fill="url(#icon-fill)"
+      stroke="url(#cyan-grad)"
+      stroke-width="1.5"
+      filter="url(#glow-cyan)"
+    />
+
+    <!-- Inner hex -->
+    <polygon
+      points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15"
+      fill="none"
+      stroke="rgba(0,229,255,0.35)"
+      stroke-width="1"
+    />
+
+    <!-- Center diamond -->
+    <polygon
+      points="0,-16 13.8,-8 13.8,8 0,16 -13.8,8 -13.8,-8"
+      fill="rgba(0,229,255,0.12)"
+      stroke="rgba(0,229,255,0.6)"
+      stroke-width="1.5"
+      filter="url(#glow-cyan)"
+    />
+
+    <!-- Core dot -->
+    <circle cx="0" cy="0" r="4.5"
+      fill="#00e5ff"
+      filter="url(#glow-strong)"
+    />
+    <circle cx="0" cy="0" r="2.5" fill="#ffffff"/>
+
+    <!-- Radial tick marks on inner hex -->
+    <line x1="0" y1="-30" x2="0" y2="-22"   stroke="#00e5ff" stroke-width="1.5" opacity="0.7"/>
+    <line x1="0" y1="30"  x2="0" y2="22"    stroke="#00e5ff" stroke-width="1.5" opacity="0.7"/>
+    <line x1="26"  y1="-15" x2="19.5" y2="-11.25" stroke="#00e5ff" stroke-width="1.5" opacity="0.7"/>
+    <line x1="-26" y1="-15" x2="-19.5" y2="-11.25" stroke="#00e5ff" stroke-width="1.5" opacity="0.7"/>
+    <line x1="26"  y1="15" x2="19.5" y2="11.25" stroke="#00e5ff" stroke-width="1.5" opacity="0.7"/>
+    <line x1="-26" y1="15" x2="-19.5" y2="11.25" stroke="#00e5ff" stroke-width="1.5" opacity="0.7"/>
+
+    <!-- Corner accent dots on outer hex -->
+    <circle cx="0"     cy="-42" r="2" fill="#00e5ff" opacity="0.9" filter="url(#glow-cyan)"/>
+    <circle cx="0"     cy="42"  r="2" fill="#00e5ff" opacity="0.9" filter="url(#glow-cyan)"/>
+    <circle cx="36.4"  cy="-21" r="2" fill="#00e5ff" opacity="0.9" filter="url(#glow-cyan)"/>
+    <circle cx="-36.4" cy="-21" r="2" fill="#00e5ff" opacity="0.9" filter="url(#glow-cyan)"/>
+    <circle cx="36.4"  cy="21"  r="2" fill="#00e5ff" opacity="0.9" filter="url(#glow-cyan)"/>
+    <circle cx="-36.4" cy="21"  r="2" fill="#00e5ff" opacity="0.9" filter="url(#glow-cyan)"/>
+
+  </g>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- WORDMARK                                -->
+  <!-- ═══════════════════════════════════════ -->
+
+  <!-- CYPHER -->
+  <text
+    x="112" y="91"
+    font-family="'IBM Plex Mono', 'Courier New', monospace"
+    font-size="46"
+    font-weight="700"
+    letter-spacing="6"
+    fill="url(#text-grad)"
+    filter="url(#glow-text)"
+  >CYPHER</text>
+
+  <!-- AI badge -->
+  <rect x="356" y="56" width="46" height="24" rx="3"
+    fill="rgba(0,229,255,0.12)"
+    stroke="#00e5ff"
+    stroke-width="1.2"
+  />
+  <text
+    x="379" y="73"
+    font-family="'IBM Plex Mono', 'Courier New', monospace"
+    font-size="13"
+    font-weight="700"
+    letter-spacing="2"
+    fill="#00e5ff"
+    text-anchor="middle"
+    filter="url(#glow-text)"
+  >AI</text>
+
+  <!-- Tagline -->
+  <text
+    x="112" y="115"
+    font-family="'IBM Plex Mono', 'Courier New', monospace"
+    font-size="11"
+    font-weight="400"
+    letter-spacing="5"
+    fill="rgba(80,96,128,0.9)"
+  >SECURITY INCIDENT RESPONSE</text>
+
+  <!-- Decorative separator line between icon and text -->
+  <line x1="94" y1="48" x2="94" y2="112"
+    stroke="rgba(0,229,255,0.2)" stroke-width="1"
+    stroke-dasharray="3 3"
+  />
+
+</svg>

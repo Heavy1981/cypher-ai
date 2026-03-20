@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-lg" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#0077bb"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#00e5ff" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#001133" stop-opacity="0.1"/>
+    </linearGradient>
+    <pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 12 0 L 0 0 0 12" fill="none" stroke="rgba(0,229,255,0.06)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- BG -->
+  <rect width="120" height="120" rx="18" fill="#03050a"/>
+  <rect width="120" height="120" rx="18" fill="url(#grid)"/>
+  <rect width="120" height="120" rx="18" stroke="rgba(0,229,255,0.18)" stroke-width="1.5" fill="none"/>
+
+  <!-- Corner accents -->
+  <path d="M18 1.5 L1.5 1.5 L1.5 18" fill="none" stroke="rgba(0,229,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M102 1.5 L118.5 1.5 L118.5 18" fill="none" stroke="rgba(0,229,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M18 118.5 L1.5 118.5 L1.5 102" fill="none" stroke="rgba(0,229,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M102 118.5 L118.5 118.5 L118.5 102" fill="none" stroke="rgba(0,229,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Icon centered at 60,60 -->
+  <g transform="translate(60,60)">
+
+    <!-- Outer glow ring -->
+    <polygon points="0,-48 41.6,-24 41.6,24 0,48 -41.6,24 -41.6,-24"
+      fill="none" stroke="rgba(0,229,255,0.12)" stroke-width="1.5" filter="url(#glow)"/>
+
+    <!-- Outer hex -->
+    <polygon points="0,-42 36.4,-21 36.4,21 0,42 -36.4,21 -36.4,-21"
+      fill="url(#g2)" stroke="url(#g1)" stroke-width="1.8" filter="url(#glow)"/>
+
+    <!-- Mid hex -->
+    <polygon points="0,-29 25.1,-14.5 25.1,14.5 0,29 -25.1,14.5 -25.1,-14.5"
+      fill="none" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+
+    <!-- Inner diamond -->
+    <polygon points="0,-16 13.8,-8 13.8,8 0,16 -13.8,8 -13.8,-8"
+      fill="rgba(0,229,255,0.1)" stroke="rgba(0,229,255,0.65)" stroke-width="1.8" filter="url(#glow)"/>
+
+    <!-- Spokes -->
+    <line x1="0" y1="-29" x2="0" y2="-18"    stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+    <line x1="0" y1="29"  x2="0" y2="18"     stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+    <line x1="25.1" y1="-14.5" x2="15.9" y2="-9.2" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+    <line x1="-25.1" y1="-14.5" x2="-15.9" y2="-9.2" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+    <line x1="25.1" y1="14.5" x2="15.9" y2="9.2" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+    <line x1="-25.1" y1="14.5" x2="-15.9" y2="9.2" stroke="#00e5ff" stroke-width="1.5" opacity="0.8"/>
+
+    <!-- Vertex dots outer -->
+    <circle cx="0" cy="-42" r="2.2" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="0" cy="42"  r="2.2" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="36.4"  cy="-21" r="2.2" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="-36.4" cy="-21" r="2.2" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="36.4"  cy="21"  r="2.2" fill="#00e5ff" filter="url(#glow)"/>
+    <circle cx="-36.4" cy="21"  r="2.2" fill="#00e5ff" filter="url(#glow)"/>
+
+    <!-- Core -->
+    <circle cx="0" cy="0" r="5.5" fill="#00e5ff" filter="url(#glow-lg)"/>
+    <circle cx="0" cy="0" r="3"   fill="#ffffff"/>
+
+  </g>
+</svg>
