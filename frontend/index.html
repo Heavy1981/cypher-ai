@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYPHER AI — Security Incident Response</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050a;--bg2:#070b14;--bg3:#0b1120;--border:#112240;--b2:#1a3560;--cyan:#00e5ff;--cdim:rgba(0,229,255,.12);--cglow:0 0 20px rgba(0,229,255,.2);--red:#ff2d55;--rdim:rgba(255,45,85,.13);--amber:#ffb700;--adim:rgba(255,183,0,.12);--green:#00ff88;--gdim:rgba(0,255,136,.12);--purple:#bf5af2;--text:#ccd6f6;--dim:#506080;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.3;z-index:9999;pointer-events:none;animation:beam 7s linear infinite}
+@keyframes beam{0%{top:0}100%{top:100vh}}
+
+/* HEADER */
+#hdr{position:relative;z-index:10;display:flex;align-items:center;padding:0 28px;height:56px;background:rgba(3,5,10,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-hex{width:36px;height:36px;border:1.5px solid var(--cyan);border-radius:7px;display:flex;align-items:center;justify-content:center;box-shadow:var(--cglow);background:var(--cdim);flex-shrink:0}
+.logo-name{font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:.2em;color:var(--cyan)}
+.logo-sub{font-size:9px;color:var(--dim);letter-spacing:.2em;text-transform:uppercase;margin-top:1px}
+nav{display:flex;gap:2px;margin-left:36px;flex:1}
+.nav-btn{padding:8px 16px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--dim);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;transition:all .15s}
+.nav-btn:hover{color:var(--cyan)}
+.nav-btn.active{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,229,255,.05)}
+.hdr-right{display:flex;align-items:center;gap:14px;margin-left:auto}
+.status-pill{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--green)}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.threat-chip{font-family:var(--mono);font-size:10px;padding:4px 11px;letter-spacing:.1em;border:1px solid var(--amber);color:var(--amber);background:var(--adim);border-radius:2px}
+.user-chip{font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:2px;transition:all .15s}
+.user-chip:hover{border-color:var(--red);color:var(--red)}
+
+/* PAGES */
+#app{position:relative;z-index:1;flex:1;overflow:hidden}
+.page{display:none;height:100%;overflow:hidden}
+.page.active{display:flex;flex-direction:column}
+
+/* ── DASHBOARD PAGE (iframe-based sub-pages) ── */
+#page-dash{flex-direction:column}
+.dash-inner{flex:1;display:grid;grid-template-columns:260px 1fr 275px;overflow:hidden}
+
+/* ── LEFT PANEL ── */
+.panel-l{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.panel-hdr{padding:11px 15px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.panel-hdr span{color:var(--cyan)}
+.inc-list{flex:1;overflow-y:auto;padding:9px}
+.inc-list::-webkit-scrollbar{width:3px}
+.inc-list::-webkit-scrollbar-thumb{background:var(--b2)}
+.inc-card{padding:11px 13px;border:1px solid var(--border);border-radius:4px;margin-bottom:7px;cursor:pointer;position:relative;overflow:hidden;transition:all .15s;background:var(--bg2)}
+.inc-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.inc-card.sev-critical::before{background:var(--red)}
+.inc-card.sev-high::before{background:var(--amber)}
+.inc-card.sev-medium::before{background:var(--cyan)}
+.inc-card.sev-low::before{background:var(--green)}
+.inc-card:hover,.inc-card.sel{border-color:var(--cyan);background:var(--bg3);box-shadow:var(--cglow)}
+.inc-ref{font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px}
+.inc-title{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:6px}
+.inc-foot{display:flex;justify-content:space-between;align-items:center}
+.sev-b{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase}
+.sev-critical{background:var(--rdim);color:var(--red);border:1px solid rgba(255,45,85,.3)}
+.sev-high{background:var(--adim);color:var(--amber);border:1px solid rgba(255,183,0,.3)}
+.sev-medium{background:var(--cdim);color:var(--cyan);border:1px solid rgba(0,229,255,.2)}
+.sev-low{background:var(--gdim);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+.inc-time{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.new-btn{margin:9px;padding:11px;border:1px dashed var(--b2);background:transparent;color:var(--dim);font-family:var(--sans);font-size:12px;letter-spacing:.06em;cursor:pointer;transition:all .18s;text-transform:uppercase}
+.new-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* ── CHAT ── */
+.chat-wrap{display:flex;flex-direction:column;overflow:hidden;flex:1}
+.chat-top{padding:12px 22px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ct-title{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text)}
+.ct-sub{font-size:11px;color:var(--dim);margin-top:2px;font-family:var(--mono)}
+.top-acts{display:flex;gap:7px;flex-shrink:0}
+.btn{padding:6px 13px;border:1px solid var(--b2);background:transparent;color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;border-radius:2px;transition:all .15s}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.danger{border-color:var(--red);color:var(--red);background:var(--rdim)}
+.btn.success{border-color:var(--green);color:var(--green)}
+.btn.primary{border-color:var(--cyan);color:var(--cyan);background:var(--cdim)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+#msgs{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+#msgs::-webkit-scrollbar{width:3px}
+#msgs::-webkit-scrollbar-thumb{background:var(--b2)}
+.msg{display:flex;gap:11px;animation:fup .22s ease}
+.msg.user{flex-direction:row-reverse}
+@keyframes fup{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.av{width:32px;height:32px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;letter-spacing:.06em}
+.av.ai{background:var(--cdim);border:1px solid rgba(0,229,255,.35);color:var(--cyan)}
+.av.user{background:var(--rdim);border:1px solid rgba(255,45,85,.35);color:var(--red)}
+.msg-body{max-width:77%}
+.msg.user .msg-body{align-items:flex-end;display:flex;flex-direction:column}
+.msg-lbl{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px}
+.bubble{padding:12px 15px;border-radius:4px;font-size:13.5px;line-height:1.75;color:var(--text)}
+.msg.ai  .bubble{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--cyan)}
+.msg.user .bubble{background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.18);border-right:3px solid var(--red)}
+.bubble strong{color:var(--cyan)}
+.bubble code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.5);padding:1px 6px;border-radius:2px;color:var(--green)}
+.bubble pre{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.5);border:1px solid var(--b2);padding:11px 13px;border-radius:4px;overflow-x:auto;color:var(--green);margin:9px 0;line-height:1.6}
+#typing{display:none;align-items:center;gap:11px;padding:0 4px}
+#typing.show{display:flex}
+.dots{padding:12px 16px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--cyan);display:flex;gap:5px;align-items:center}
+.dots span{width:6px;height:6px;border-radius:50%;background:var(--cyan);opacity:.3;animation:d 1.3s ease-in-out infinite}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes d{0%,100%{opacity:.2;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+.input-area{padding:13px 22px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.quick-row{display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap}
+.qbtn{padding:4px 10px;border:1px solid var(--b2);background:transparent;color:var(--dim);font-family:var(--mono);font-size:10px;cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap}
+.qbtn:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cdim)}
+.irow{display:flex;gap:9px;align-items:flex-end}
+.iwrap{flex:1;border:1px solid var(--b2);border-radius:4px;background:var(--bg);transition:border-color .18s}
+.iwrap:focus-within{border-color:var(--cyan);box-shadow:var(--cglow)}
+#inp{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:13.5px;padding:10px 14px;resize:none;min-height:44px;max-height:130px;line-height:1.5}
+#inp::placeholder{color:var(--dim)}
+#sbtn{padding:0 20px;height:44px;background:var(--cyan);border:none;border-radius:4px;color:var(--bg);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;cursor:pointer;text-transform:uppercase;transition:all .18s;flex-shrink:0}
+#sbtn:hover{background:#33eeff;box-shadow:var(--cglow)}
+#sbtn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── RIGHT PANEL ── */
+.panel-r{border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.tl-list{flex:1;overflow-y:auto;padding:13px 15px}
+.tl-list::-webkit-scrollbar{width:3px}
+.tl-list::-webkit-scrollbar-thumb{background:var(--b2)}
+.tl-item{position:relative;padding-left:19px;padding-bottom:15px;border-left:1px solid var(--border);margin-left:7px}
+.tl-item::before{content:'';position:absolute;left:-4px;top:5px;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--bg2)}
+.tl-default::before{background:var(--b2)}
+.tl-active::before{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.tl-warn::before{background:var(--amber)}
+.tl-danger::before{background:var(--red);box-shadow:0 0 8px var(--red)}
+.tl-good::before{background:var(--green)}
+.tl-t{font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:3px}
+.tl-x{font-size:11.5px;color:var(--text);line-height:1.5}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:11px;border-top:1px solid var(--border);flex-shrink:0}
+.sc{padding:10px;border:1px solid var(--border);background:var(--bg2);border-radius:4px;text-align:center}
+.sv{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--cyan);line-height:1}
+.sl{font-size:9px;color:var(--dim);letter-spacing:.13em;text-transform:uppercase;margin-top:4px}
+
+/* ── REPORTS PAGE ── */
+#page-reports{overflow-y:auto}
+#page-reports iframe{width:100%;height:100%;border:none;flex:1}
+
+/* ── MODAL ── */
+#modal{display:none;position:fixed;inset:0;background:rgba(3,5,10,.88);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center}
+#modal.show{display:flex}
+.mbox{background:var(--bg2);border:1px solid var(--cyan);box-shadow:var(--cglow);padding:28px;width:500px;border-radius:6px;animation:fup .2s ease}
+.mbox h3{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--cyan);margin-bottom:20px;text-transform:uppercase}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-bottom:6px}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--bg);border:1px solid var(--b2);color:var(--text);padding:9px 12px;border-radius:3px;font-family:var(--sans);font-size:13px;outline:none;transition:border-color .18s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--cyan)}
+.fg select option{background:var(--bg2)}
+.macts{display:flex;gap:9px;justify-content:flex-end;margin-top:20px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <a class="logo" href="#">
+    <div class="logo-hex">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 2L17 6V14L10 18L3 14V6L10 2Z" stroke="#00e5ff" stroke-width="1.5" fill="rgba(0,229,255,.15)"/>
+        <circle cx="10" cy="10" r="2.5" fill="#00e5ff"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-name">CYPHER AI</div>
+      <div class="logo-sub">Security Incident Response</div>
+    </div>
+  </a>
+
+  <nav>
+    <button class="nav-btn active" onclick="showPage('dash',this)">⬡ Dashboard</button>
+    <button class="nav-btn" onclick="showPage('reports',this)">📊 Relatórios</button>
+  </nav>
+
+  <div class="hdr-right">
+    <div class="threat-chip">THREAT: ELEVATED</div>
+    <div class="status-pill"><div class="sdot"></div>AI ONLINE</div>
+    <div class="user-chip" id="user-name" onclick="logout()">admin ↗</div>
+  </div>
+</div>
+
+<!-- PAGES -->
+<div id="app">
+
+  <!-- DASHBOARD PAGE -->
+  <div id="page-dash" class="page active">
+    <div class="dash-inner">
+
+      <!-- LEFT: incident list -->
+      <div class="panel-l">
+        <div class="panel-hdr">Incidentes <span id="inc-count">0</span></div>
+        <div class="inc-list" id="inc-list"></div>
+        <button class="new-btn" onclick="openModal()">+ Registrar Incidente</button>
+      </div>
+
+      <!-- CENTER: chat -->
+      <div class="chat-wrap">
+        <div class="chat-top">
+          <div>
+            <div class="ct-title" id="ct-title">Selecione um incidente</div>
+            <div class="ct-sub"  id="ct-sub">—</div>
+          </div>
+          <div class="top-acts">
+            <button class="btn" onclick="doExport()">↓ Relatório</button>
+            <button class="btn danger" onclick="doEscalate()">⬆ Escalar</button>
+            <button class="btn success" onclick="doResolve()">✓ Resolver</button>
+          </div>
+        </div>
+        <div id="msgs"></div>
+        <div id="typing">
+          <div class="av ai">AI</div>
+          <div class="dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="input-area">
+          <div class="quick-row">
+            <button class="qbtn" onclick="q('Qual o vetor de ataque inicial?')">Vetor</button>
+            <button class="qbtn" onclick="q('Liste todos os IOCs identificados')">IOCs</button>
+            <button class="qbtn" onclick="q('Ações imediatas de contenção?')">Contenção</button>
+            <button class="qbtn" onclick="q('Mapeie no MITRE ATT&CK')">MITRE</button>
+            <button class="qbtn" onclick="q('Relatório executivo para o CISO')">Exec Report</button>
+            <button class="qbtn" onclick="q('Blast radius — impacto lateral potencial?')">Blast Radius</button>
+            <button class="qbtn" onclick="q('Playbook de resposta recomendado?')">Playbook</button>
+          </div>
+          <div class="irow">
+            <div class="iwrap">
+              <textarea id="inp" rows="1" placeholder="Analise o incidente ou faça perguntas ao CYPHER AI..."
+                onkeydown="hkey(event)" oninput="rsz(this)"></textarea>
+            </div>
+            <button id="sbtn" onclick="sendMsg()">Enviar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: timeline + stats -->
+      <div class="panel-r">
+        <div class="panel-hdr">Timeline</div>
+        <div class="tl-list" id="tl-list"></div>
+        <div class="stats-grid">
+          <div class="sc"><div class="sv" id="st-msgs">0</div><div class="sl">Msgs</div></div>
+          <div class="sc"><div class="sv" style="color:var(--red)" id="st-open">4</div><div class="sl">Ativos</div></div>
+          <div class="sc"><div class="sv" style="color:var(--amber)" id="st-crit">2</div><div class="sl">Críticos</div></div>
+          <div class="sc"><div class="sv" style="color:var(--green)">7</div><div class="sl">Resolvidos</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- REPORTS PAGE -->
+  <div id="page-reports" class="page" style="flex:1">
+    <iframe id="report-frame" src="relatorio.html" title="Relatórios"></iframe>
+  </div>
+
+</div><!-- /app -->
+
+<!-- MODAL: New Incident -->
+<div id="modal">
+  <div class="mbox">
+    <h3>⚠ Novo Incidente</h3>
+    <div class="fg"><label>Título</label><input type="text" id="f-title" placeholder="Ex: Ransomware detectado em FS01"></div>
+    <div class="fg"><label>Cliente</label><input type="text" id="f-client" placeholder="Ex: TechCorp SA"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label>Severidade</label>
+        <select id="f-sev"><option value="critical">Crítico</option><option value="high">Alto</option><option value="medium" selected>Médio</option><option value="low">Baixo</option></select>
+      </div>
+      <div class="fg"><label>Categoria</label>
+        <select id="f-cat"><option>ransomware</option><option>phishing</option><option>malware</option><option>data_breach</option><option>ddos</option><option>insider</option><option>reconnaissance</option><option>other</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Descrição inicial</label><textarea id="f-desc" rows="3" placeholder="O que foi observado, sistemas afetados..."></textarea></div>
+    <div class="macts">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="createInc()">Criar & Analisar</button>
+    </div>
+  </div>
+</div>
+
+<script src="src/api.js"></script>
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const SYSTEM = `Você é o CYPHER AI, analista sênior de segurança especializado em DFIR.
+Frameworks: MITRE ATT&CK, NIST 800-61, SANS IR, OWASP.
+Regras: priorize CONTENÇÃO, preserve evidências, timestamps UTC, use negrito para itens críticos, blocos de código para hashes/IPs/comandos, responda em português brasileiro.`
+
+let incidents = [
+  {id:'INC-2024-0001',title:'Ransomware LockBit 3.0 — Servidor FS01',client:'TechCorp SA',severity:'critical',status:'investigating',time:'14:32',mitre:['TA0040','TA0011'],hosts:['FS01.techcorp.local'],ips:['185.220.101.45'],messages:[]},
+  {id:'INC-2024-0002',title:'Credential Stuffing VPN — Acessos Suspeitos',client:'FinBank Ltda',severity:'high',status:'open',time:'11:15',mitre:['TA0001','TA0006'],hosts:[],ips:['91.108.4.0'],messages:[]},
+  {id:'INC-2024-0003',title:'Spear Phishing C-Level — Anexo Malicioso',client:'RetailGroup',severity:'high',status:'contained',time:'09:44',mitre:['TA0001'],hosts:[],ips:[],messages:[]},
+  {id:'INC-2024-0004',title:'Port Scan Massivo — IP Interno',client:'Prefeitura SP',severity:'medium',status:'open',time:'08:20',mitre:['TA0043'],hosts:['WKS-FIN-12'],ips:['10.200.1.100'],messages:[]},
+]
+
+let activeIdx = 0, loading = false
+let tl = [{time:'14:32',text:'Incidente registrado via CrowdStrike',type:'danger'},{time:'14:33',text:'CYPHER AI iniciou análise',type:'active'},{time:'14:35',text:'LockBit 3.0 confirmado — CRITICAL',type:'danger'},{time:'14:40',text:'Isolamento de FS01 recomendado',type:'warn'},{time:'14:42',text:'IP C2 bloqueado no FortiGate',type:'good'}]
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById('page-' + id).classList.add('active')
+  if (btn) btn.classList.add('active')
+}
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function renderIncs() {
+  document.getElementById('inc-list').innerHTML = incidents.map((inc,i) => `
+    <div class="inc-card sev-${inc.severity} ${i===activeIdx?'sel':''}" onclick="selInc(${i})">
+      <div class="inc-ref">${inc.id} · ${inc.client}</div>
+      <div class="inc-title">${inc.title}</div>
+      <div class="inc-foot">
+        <span class="sev-b sev-${inc.severity}">${inc.severity}</span>
+        <span class="inc-time">${inc.time} UTC</span>
+      </div>
+    </div>`).join('')
+  document.getElementById('inc-count').textContent = incidents.length
+  document.getElementById('st-open').textContent = incidents.filter(i=>i.status!=='closed').length
+  document.getElementById('st-crit').textContent = incidents.filter(i=>i.severity==='critical').length
+}
+
+function renderMsgs() {
+  const inc = incidents[activeIdx]
+  const el = document.getElementById('msgs')
+  el.innerHTML = inc.messages.map(m => `
+    <div class="msg ${m.role}">
+      <div class="av ${m.role}">${m.role==='ai'?'AI':'SOC'}</div>
+      <div class="msg-body">
+        <div class="msg-lbl">${m.role==='ai'?'CYPHER AI':'OPERADOR'}</div>
+        <div class="bubble">${fmt(m.content)}</div>
+      </div>
+    </div>`).join('')
+  el.scrollTop = el.scrollHeight
+  document.getElementById('st-msgs').textContent = inc.messages.length
+}
+
+function renderTl() {
+  document.getElementById('tl-list').innerHTML = tl.map(t => `
+    <div class="tl-item tl-${t.type}">
+      <div class="tl-t">${t.time} UTC</div>
+      <div class="tl-x">${t.text}</div>
+    </div>`).join('')
+  const el = document.getElementById('tl-list')
+  el.scrollTop = el.scrollHeight
+}
+
+function updateTop() {
+  const inc = incidents[activeIdx]
+  document.getElementById('ct-title').textContent = `${inc.id} — ${inc.title.toUpperCase()}`
+  document.getElementById('ct-sub').textContent = `${inc.client} · ${inc.status.toUpperCase()} · ${inc.mitre.join(' · ')}`
+}
+
+function fmt(text) {
+  return text
+    .replace(/```([\s\S]*?)```/g,'<pre>$1</pre>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>')
+}
+
+// ═══════════════════════════════════════
+// SELECT INCIDENT
+// ═══════════════════════════════════════
+function selInc(idx) {
+  activeIdx = idx
+  renderIncs(); renderMsgs(); updateTop()
+  if (!incidents[idx].messages.length) welcome(incidents[idx])
+}
+
+// ═══════════════════════════════════════
+// AI CALL
+// ═══════════════════════════════════════
+async function callAI(userText) {
+  const inc = incidents[activeIdx]
+  const ctx = `=== INCIDENTE ===\nID: ${inc.id}\nTítulo: ${inc.title}\nCliente: ${inc.client}\nSeveridade: ${inc.severity.toUpperCase()}\nStatus: ${inc.status}\nHosts: ${inc.hosts.join(', ')||'—'}\nIPs: ${inc.ips.join(', ')||'—'}\nMITRE: ${inc.mitre.join(', ')||'—'}\n================\n\n`
+  const history = inc.messages.map(m => ({ role: m.role==='ai'?'assistant':'user', content: m.content }))
+  const msgs = history.length === 0
+    ? [{ role:'user', content: ctx + userText }]
+    : [...history.slice(0,-1), { role:'user', content: userText }]
+  if (history.length > 0) msgs[0] = { ...msgs[0], content: ctx + msgs[0].content }
+
+  // Try backend first, fallback to direct Anthropic
+  const backendData = await CypherAPI.inc.sendMessage(inc.id, userText).catch(() => null)
+  if (backendData?.ai_message) return backendData.ai_message.content
+
+  return await CypherAPI.callAnthropicDirect(msgs, SYSTEM)
+}
+
+async function welcome(inc) {
+  setLoading(true)
+  try {
+    const reply = await callAI(`Novo incidente "${inc.title}" registrado para ${inc.client}. Severidade: ${inc.severity.toUpperCase()}.\nFaça análise inicial com: 1) Avaliação de risco 2) Hipótese do ataque 3) Primeiros 3 passos agora.`)
+    incidents[activeIdx].messages.push({ role:'ai', content: reply })
+  } catch {
+    incidents[activeIdx].messages.push({ role:'ai', content:`**CYPHER AI ATIVO**\n\nIncidente ${inc.id} recebido. Use os atalhos ou descreva mais detalhes para iniciar a análise.` })
+  }
+  setLoading(false); renderMsgs()
+}
+
+// ═══════════════════════════════════════
+// SEND
+// ═══════════════════════════════════════
+async function sendMsg(override) {
+  if (loading) return
+  const inp = document.getElementById('inp')
+  const text = override || inp.value.trim()
+  if (!text) return
+  if (!override) { inp.value = ''; inp.style.height = 'auto' }
+  incidents[activeIdx].messages.push({ role:'user', content: text })
+  renderMsgs(); setLoading(true)
+  try {
+    const reply = await callAI(text)
+    incidents[activeIdx].messages.push({ role:'ai', content: reply })
+    const now = new Date()
+    tl.push({ time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`, text:'CYPHER AI respondeu à consulta', type:'active' })
+    renderTl()
+  } catch(e) {
+    incidents[activeIdx].messages.push({ role:'ai', content:`**Erro:** ${e.message}` })
+  }
+  setLoading(false); renderMsgs()
+}
+
+function q(t) { sendMsg(t) }
+function hkey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()} }
+function rsz(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,130)+'px' }
+function setLoading(v) {
+  loading=v
+  document.getElementById('typing').className=v?'show':''
+  document.getElementById('sbtn').disabled=v
+  const m=document.getElementById('msgs'); m.scrollTop=m.scrollHeight
+}
+
+// ═══════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════
+function openModal()  { document.getElementById('modal').className='show' }
+function closeModal() { document.getElementById('modal').className='' }
+
+async function createInc() {
+  const title  = document.getElementById('f-title').value.trim()
+  const client = document.getElementById('f-client').value.trim()
+  if (!title||!client) { alert('Título e cliente obrigatórios'); return }
+  const now  = new Date()
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+  const id   = `INC-${now.getFullYear()}-${String(incidents.length+1).padStart(4,'0')}`
+  const desc = document.getElementById('f-desc').value.trim()
+  const newInc = {
+    id, title, client,
+    severity: document.getElementById('f-sev').value,
+    status:'open', time,
+    mitre:[], hosts:[], ips:[],
+    messages: desc ? [{role:'user',content:desc}] : []
+  }
+  incidents.unshift(newInc); activeIdx=0
+  tl.push({time,text:`Novo incidente: ${id}`,type:'danger'})
+  closeModal()
+  ;['f-title','f-client','f-desc'].forEach(id=>document.getElementById(id).value='')
+  renderIncs(); renderMsgs(); updateTop(); renderTl()
+  welcome(newInc)
+}
+
+// ═══════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════
+function doExport() {
+  const inc = incidents[activeIdx]
+  const lines = [`RELATÓRIO — ${inc.id}\nCliente: ${inc.client}\nSeveridade: ${inc.severity.toUpperCase()}\nGerado: ${new Date().toISOString()}\n${'='.repeat(60)}\n`,...inc.messages.map(m=>`[${m.role==='ai'?'CYPHER AI':'ANALISTA'}]\n${m.content.replace(/<[^>]+>/g,'')}\n`)]
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'})); a.download=`${inc.id}_report.txt`; a.click()
+}
+function doEscalate() { sendMsg('Escale para nível máximo. Gere resumo de 5 linhas para o CISO e liste as 5 ações críticas nas próximas 2 horas.') }
+function doResolve()   { sendMsg(`Relatório de encerramento do ${incidents[activeIdx].id}: causa raiz, timeline, sistemas afetados, ações tomadas, IOCs, lições aprendidas e recomendações.`) }
+
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
+function logout() { CypherAPI.clearSession(); window.location.href='/login.html' }
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+;(function init() {
+  if (!CypherAPI.isLoggedIn()) { window.location.href='/login.html'; return }
+  const user = CypherAPI.getUser()
+  if (user) document.getElementById('user-name').textContent = (user.full_name||user.email).split(' ')[0] + ' ↗'
+  renderIncs(); renderTl(); selInc(0)
+})()
+</script>
+</body>
+</html>
