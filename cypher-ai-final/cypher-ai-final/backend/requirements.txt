@@ -1,0 +1,73 @@
+# ── Web Framework ──────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.12
+websockets==13.1
+
+# ── Database ───────────────────────────────────────────────────
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.29.0
+alembic==1.13.3
+psycopg2-binary==2.9.10
+
+# ── Cache / Queue ──────────────────────────────────────────────
+redis==5.1.1
+celery==5.4.0
+redbeat==2.2.0
+kombu==5.3.4
+flower==2.0.1
+
+# ── Auth ───────────────────────────────────────────────────────
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.1
+
+# ── Pydantic ───────────────────────────────────────────────────
+pydantic==2.9.2
+pydantic-settings==2.5.2
+email-validator==2.2.0
+
+# ── AI ─────────────────────────────────────────────────────────
+anthropic==0.34.2
+
+# ── HTTP Client ────────────────────────────────────────────────
+httpx==0.27.2
+aiohttp==3.10.10
+requests==2.32.3
+
+# ── SIEM Integrations ──────────────────────────────────────────
+elasticsearch==8.15.1
+splunk-sdk==2.0.2
+
+# ── Cloud SDKs ─────────────────────────────────────────────────
+boto3==1.35.30                    # AWS
+azure-mgmt-security==7.0.0       # Azure Defender
+azure-monitor-query==1.4.0       # Azure Monitor/Sentinel
+google-cloud-securitycenter==1.33.1  # GCP SCC
+
+# ── Enrichment ─────────────────────────────────────────────────
+vt-py==0.18.5                    # VirusTotal
+shodan==1.31.0
+
+# ── Notifications ──────────────────────────────────────────────
+slack-sdk==3.33.0
+sendgrid==6.11.0
+pypd==1.1.0                      # PagerDuty
+
+# ── Utilities ──────────────────────────────────────────────────
+structlog==24.4.0
+sentry-sdk[fastapi]==2.15.0
+prometheus-fastapi-instrumentator==7.0.0
+tenacity==9.0.0                  # Retry logic
+cryptography==43.0.1
+pyotp==2.9.0                     # TOTP/MFA
+pillow==10.4.0
+python-magic==0.4.27
+
+# ── Testing ────────────────────────────────────────────────────
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-cov==5.0.0
+httpx==0.27.2
+factory-boy==3.3.1
+faker==30.3.0
