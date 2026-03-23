@@ -75,7 +75,7 @@ class Client(Base):
     contact_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     risk_profile: Mapped[str] = mapped_column(String(50), default="medium")  # low | medium | high | critical
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    metadata: Mapped[dict] = mapped_column(JSONB, default=dict)
+    extra_data: Mapped[dict] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     organization: Mapped["Organization"] = relationship("Organization", back_populates="clients")
@@ -218,7 +218,7 @@ class Message(Base):
     role: Mapped[str] = mapped_column(String(20), nullable=False)  # user | assistant | system
     content: Mapped[str] = mapped_column(Text, nullable=False)
     author_id: Mapped[Optional[str]] = mapped_column(ForeignKey("users.id"), nullable=True)
-    metadata: Mapped[dict] = mapped_column(JSONB, default=dict)
+    extra_data: Mapped[dict] = mapped_column(JSONB, default=dict)
     tokens_used: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -298,7 +298,7 @@ class TimelineEvent(Base):
     # incident_created | alert_correlated | status_change | action_executed |
     # ai_analysis | ioc_added | artifact_uploaded | note_added | escalated
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    metadata: Mapped[dict] = mapped_column(JSONB, default=dict)
+    extra_data: Mapped[dict] = mapped_column(JSONB, default=dict)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     incident: Mapped["Incident"] = relationship("Incident", back_populates="timeline")

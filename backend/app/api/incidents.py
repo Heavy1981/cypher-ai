@@ -308,7 +308,7 @@ async def get_timeline(
     )
     events = result.scalars().all()
     return [{"id": e.id, "event_type": e.event_type, "description": e.description,
-             "metadata": e.metadata, "occurred_at": e.occurred_at.isoformat()} for e in events]
+             "metadata": e.extra_data, "occurred_at": e.occurred_at.isoformat()} for e in events]
 
 @router.post("/{incident_id}/report")
 async def generate_report(
