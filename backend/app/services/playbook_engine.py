@@ -166,7 +166,7 @@ class PlaybookEngine:
             actor_id=self.triggered_by_id,
             event_type="playbook_executed",
             description=f"Playbook '{playbook.get('name')}' executado: {results['steps_executed']} passos concluídos",
-            metadata=results,
+            extra_data=results,
         ))
         await self.db.commit()
         return results

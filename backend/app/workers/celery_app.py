@@ -14,7 +14,6 @@ celery_app = Celery(
     include=[
         "app.workers.alert_tasks",
         "app.workers.action_tasks",
-        "app.workers.ai_tasks",
         "app.workers.notification_tasks",
         "app.workers.enrichment_tasks",
     ],
@@ -32,7 +31,6 @@ celery_app.conf.update(
     task_routes={
         "app.workers.alert_tasks.*": {"queue": "alerts"},
         "app.workers.action_tasks.*": {"queue": "actions"},
-        "app.workers.ai_tasks.*": {"queue": "ai"},
         "app.workers.notification_tasks.*": {"queue": "default"},
         "app.workers.enrichment_tasks.*": {"queue": "default"},
     },

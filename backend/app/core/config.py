@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     JIRA_USER: str = ""
     JIRA_API_TOKEN: str = ""
     JIRA_DEFAULT_PROJECT: str = "SEC"
+    SERVICENOW_URL: str = ""
+    SERVICENOW_USER: str = ""
+    SERVICENOW_PASSWORD: str = ""
 
     # Storage
     STORAGE_BACKEND: str = "local"
