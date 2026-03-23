@@ -140,8 +140,28 @@ def correlate_unassigned_alerts():
     """
     Correlaciona alertas sem incidente usando IA.
     Agrupa por client_id, janela de 30 minutos, e chama AI para decisão.
+    Usa distributed lock via Redis para evitar race condition entre workers.
     """
     async def _run():
+        import redis.asyncio as aioredis
+        from app.core.config import settings
+        redis_client = aioredis.from_url(settings.REDIS_URL)
+        lock_key = "lock:correlate_unassigned_alerts"
+        lock_ttl = 120  # segundos
+
+        acquired = await redis_client.set(lock_key, "1", nx=True, ex=lock_ttl)
+        if not acquired:
+            logger.info("correlation_skipped", reason="lock_held_by_another_worker")
+            await redis_client.aclose()
+            return {"correlated": 0, "skipped": True}
+
+        try:
+            return await _do_correlate()
+        finally:
+            await redis_client.delete(lock_key)
+            await redis_client.aclose()
+
+    async def _do_correlate():
         from datetime import datetime, timedelta, timezone
         window_start = datetime.now(timezone.utc) - timedelta(minutes=30)
 
@@ -196,12 +216,9 @@ def correlate_unassigned_alerts():
                 from app.models import TimelineEvent
                 from app.models import CorrelationRule  # noqa
 
-                # Gera ref
-                from sqlalchemy import func
-                count_result = await db.execute(select(func.count()).select_from(Incident))
-                count = count_result.scalar() or 0
+                # Gera ref único usando uuid para evitar race condition
                 from datetime import datetime
-                ref = f"INC-{datetime.now().year}-{str(count + 1).zfill(4)}"
+                ref = f"INC-{datetime.now().year}-{uuid.uuid4().hex[:6].upper()}"
 
                 incident = Incident(
                     organization_id=client.organization_id,
@@ -230,7 +247,7 @@ def correlate_unassigned_alerts():
                     incident_id=incident.id,
                     event_type="incident_created",
                     description=f"Incidente criado automaticamente pela correlação de {len(client_alerts)} alertas",
-                    metadata={"alert_count": len(client_alerts), "ai_analysis": analysis},
+                    extra_data={"alert_count": len(client_alerts), "ai_analysis": analysis},
                 ))
 
                 await db.commit()

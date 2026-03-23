@@ -47,7 +47,7 @@ class SplunkConnector(BaseConnector):
     """Splunk Enterprise / Splunk Cloud via REST API."""
 
     async def health_check(self) -> dict:
-        async with httpx.AsyncClient(verify=False, timeout=10) as client:
+        async with httpx.AsyncClient(verify=True, timeout=10) as client:
             try:
                 resp = await client.get(
                     f"{self.creds['url']}/services/server/info",
@@ -60,7 +60,7 @@ class SplunkConnector(BaseConnector):
 
     async def fetch_alerts(self, since_minutes: int = 60) -> list[dict]:
         """Busca alertas disparados via Splunk alerts/fired_alerts."""
-        async with httpx.AsyncClient(verify=False, timeout=30) as client:
+        async with httpx.AsyncClient(verify=True, timeout=30) as client:
             resp = await client.get(
                 f"{self.creds['url']}/services/alerts/fired_alerts",
                 headers={"Authorization": f"Bearer {self.creds['token']}"},
@@ -72,7 +72,7 @@ class SplunkConnector(BaseConnector):
 
     async def run_search(self, spl_query: str, earliest: str = "-1h") -> list[dict]:
         """Executa uma busca SPL e retorna resultados."""
-        async with httpx.AsyncClient(verify=False, timeout=60) as client:
+        async with httpx.AsyncClient(verify=True, timeout=60) as client:
             # Cria job de busca
             create_resp = await client.post(
                 f"{self.creds['url']}/services/search/jobs",
@@ -374,7 +374,7 @@ class FortinetConnector(BaseConnector):
     """FortiGate via FortiOS REST API."""
 
     async def health_check(self) -> dict:
-        async with httpx.AsyncClient(verify=False, timeout=10) as client:
+        async with httpx.AsyncClient(verify=True, timeout=10) as client:
             try:
                 resp = await client.get(
                     f"{self.creds['url']}/api/v2/monitor/system/status",
@@ -387,7 +387,7 @@ class FortinetConnector(BaseConnector):
 
     async def fetch_alerts(self, since_minutes: int = 60) -> list[dict]:
         """Busca logs de ameaças do FortiGate."""
-        async with httpx.AsyncClient(verify=False, timeout=30) as client:
+        async with httpx.AsyncClient(verify=True, timeout=30) as client:
             resp = await client.get(
                 f"{self.creds['url']}/api/v2/log/disk/threat",
                 headers={"Authorization": f"Bearer {self.creds['api_key']}"},
@@ -398,7 +398,7 @@ class FortinetConnector(BaseConnector):
 
     async def block_ip(self, ip: str, comment: str = "Blocked by CYPHER AI") -> dict:
         """Adiciona IP à address group de bloqueio."""
-        async with httpx.AsyncClient(verify=False, timeout=30) as client:
+        async with httpx.AsyncClient(verify=True, timeout=30) as client:
             # Cria address object
             await client.post(
                 f"{self.creds['url']}/api/v2/cmdb/firewall/address",
@@ -408,7 +408,7 @@ class FortinetConnector(BaseConnector):
             return {"success": True, "ip": ip, "action": "address_created"}
 
     async def fetch_logs(self, log_type: str = "traffic", rows: int = 500) -> list[dict]:
-        async with httpx.AsyncClient(verify=False, timeout=30) as client:
+        async with httpx.AsyncClient(verify=True, timeout=30) as client:
             resp = await client.get(
                 f"{self.creds['url']}/api/v2/log/disk/{log_type}",
                 headers={"Authorization": f"Bearer {self.creds['api_key']}"},
@@ -432,7 +432,7 @@ class PaloAltoConnector(BaseConnector):
     """Palo Alto Networks PAN-OS via XML/REST API."""
 
     async def health_check(self) -> dict:
-        async with httpx.AsyncClient(verify=False, timeout=10) as client:
+        async with httpx.AsyncClient(verify=True, timeout=10) as client:
             try:
                 resp = await client.get(
                     f"{self.creds['url']}/api/",
@@ -443,7 +443,7 @@ class PaloAltoConnector(BaseConnector):
                 return {"status": "offline", "error": str(e)}
 
     async def fetch_alerts(self, since_minutes: int = 60) -> list[dict]:
-        async with httpx.AsyncClient(verify=False, timeout=30) as client:
+        async with httpx.AsyncClient(verify=True, timeout=30) as client:
             resp = await client.get(
                 f"{self.creds['url']}/api/",
                 params={
@@ -460,7 +460,7 @@ class PaloAltoConnector(BaseConnector):
 
     async def block_ip(self, ip: str) -> dict:
         """Adiciona IP ao Dynamic Address Group via API."""
-        async with httpx.AsyncClient(verify=False, timeout=15) as client:
+        async with httpx.AsyncClient(verify=True, timeout=15) as client:
             resp = await client.post(
                 f"{self.creds['url']}/api/",
                 params={

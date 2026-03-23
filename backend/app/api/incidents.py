@@ -36,8 +36,8 @@ async def list_incidents(
     status: Optional[str] = None,
     severity: Optional[str] = None,
     client_id: Optional[str] = None,
-    page: int = 1,
-    limit: int = 20,
+    page: int = Query(1, ge=1, le=10000),
+    limit: int = Query(20, ge=1, le=200),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -89,10 +89,9 @@ async def create_incident(
     if not client:
         raise HTTPException(404, "Cliente não encontrado")
 
-    # Generate ref
-    count_result = await db.execute(select(func.count()).select_from(Incident))
-    count = count_result.scalar() or 0
-    ref = f"INC-{datetime.now().year}-{str(count + 1).zfill(4)}"
+    # Generate ref único usando uuid para evitar race condition
+    import uuid
+    ref = f"INC-{datetime.now().year}-{uuid.uuid4().hex[:6].upper()}"
 
     incident = Incident(
         organization_id=current_user.organization_id,
@@ -193,7 +192,10 @@ async def update_incident(
     old_status = incident.status
     changes = []
 
+    ALLOWED_FIELDS = {"title", "severity", "status", "category", "assignee_id"}
     for field, value in body.model_dump(exclude_none=True).items():
+        if field not in ALLOWED_FIELDS:
+            continue
         setattr(incident, field, value)
         changes.append(f"{field}: {value}")
 

@@ -51,14 +51,22 @@ def send_daily_report():
         async with AsyncSessionLocal() as db:
             from sqlalchemy import func
             from app.models import Organization
-            result = await db.execute(
-                select(
-                    func.count(Incident.id).label("total"),
-                    func.count(Incident.id).filter(Incident.severity == "critical").label("critical"),
-                    func.count(Incident.id).filter(Incident.status == "open").label("open"),
-                ).where(Incident.status != "closed")
-            )
-            stats = result.first()
-            logger.info("daily_report", total=stats.total, critical=stats.critical, open=stats.open)
+            orgs_result = await db.execute(select(Organization).where(Organization.is_active == True))
+            organizations = orgs_result.scalars().all()
+
+            for org in organizations:
+                result = await db.execute(
+                    select(
+                        func.count(Incident.id).label("total"),
+                        func.count(Incident.id).filter(Incident.severity == "critical").label("critical"),
+                        func.count(Incident.id).filter(Incident.status == "open").label("open"),
+                    ).where(
+                        Incident.organization_id == org.id,
+                        Incident.status != "closed",
+                    )
+                )
+                stats = result.first()
+                logger.info("daily_report", org_id=org.id, org_name=org.name,
+                            total=stats.total, critical=stats.critical, open=stats.open)
 
     return run_async(_run())

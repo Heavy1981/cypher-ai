@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from pydantic import BaseModel
 from typing import Optional
 from app.core.database import get_db
@@ -17,18 +17,23 @@ class ClientCreate(BaseModel):
 
 @router.get("")
 async def list_clients(
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=200),
     current_user: User = Depends(require_analyst),
     db: AsyncSession = Depends(get_db)
 ):
+    filters = [Client.organization_id == current_user.organization_id, Client.is_active == True]
+    total = (await db.execute(select(func.count()).select_from(Client).where(*filters))).scalar()
     result = await db.execute(
-        select(Client).where(
-            Client.organization_id == current_user.organization_id,
-            Client.is_active == True
-        ).order_by(Client.name)
+        select(Client).where(*filters).order_by(Client.name)
+        .offset((page - 1) * limit).limit(limit)
     )
     clients = result.scalars().all()
-    return [{"id": c.id, "name": c.name, "industry": c.industry,
-             "risk_profile": c.risk_profile, "contact_email": c.contact_email} for c in clients]
+    return {
+        "items": [{"id": c.id, "name": c.name, "industry": c.industry,
+                   "risk_profile": c.risk_profile, "contact_email": c.contact_email} for c in clients],
+        "total": total, "page": page, "limit": limit,
+    }
 
 @router.post("", status_code=201)
 async def create_client(

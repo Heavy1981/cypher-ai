@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -9,6 +10,13 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.core.database import get_db
 from app.models import User
+
+
+class Role(str, Enum):
+    SUPER_ADMIN = "super_admin"
+    ORG_ADMIN   = "org_admin"
+    ANALYST     = "analyst"
+    VIEWER      = "viewer"
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer()
@@ -81,5 +89,5 @@ def require_roles(*roles: str):
 
 
 # Aliases comuns
-require_admin = require_roles("super_admin", "org_admin")
-require_analyst = require_roles("super_admin", "org_admin", "analyst")
+require_admin   = require_roles(Role.SUPER_ADMIN, Role.ORG_ADMIN)
+require_analyst = require_roles(Role.SUPER_ADMIN, Role.ORG_ADMIN, Role.ANALYST)

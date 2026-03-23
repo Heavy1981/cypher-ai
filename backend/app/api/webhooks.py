@@ -31,10 +31,11 @@ async def ingest_webhook(
         if not integration:
             raise HTTPException(404, "Integration not found")
 
-        # Validate secret if configured
+        # Validate secret usando compare_digest para evitar timing attacks
         webhook_secret = integration.config.get("webhook_secret")
-        if webhook_secret and x_cypher_secret != webhook_secret:
-            raise HTTPException(401, "Invalid webhook secret")
+        if webhook_secret:
+            if not x_cypher_secret or not hmac.compare_digest(x_cypher_secret, webhook_secret):
+                raise HTTPException(401, "Invalid webhook secret")
 
     payload = await request.json()
     ingest_webhook_alert.apply_async(args=[payload, integration_id], queue="alerts")

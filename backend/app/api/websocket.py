@@ -3,6 +3,7 @@ WebSocket — real-time updates para o frontend
 Broadcasts: new_incident, alert_ingested, action_executed, incident_updated
 """
 import json
+from datetime import datetime, timezone
 from typing import Dict, Set
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from app.core.security import decode_token
@@ -45,7 +46,17 @@ manager = ConnectionManager()
 async def websocket_incidents(websocket: WebSocket, token: str = Query(...)):
     try:
         payload = decode_token(token)
+        if payload.get("type") != "access":
+            await websocket.close(code=4001)
+            return
+        exp = payload.get("exp")
+        if not exp or datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc):
+            await websocket.close(code=4001)
+            return
         org_id = payload.get("org")
+        if not org_id:
+            await websocket.close(code=4001)
+            return
     except Exception:
         await websocket.close(code=4001)
         return

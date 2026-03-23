@@ -91,22 +91,8 @@ const reportApi = {
   summary: (days) => apiFetch(`/reports/summary?days=${days || 30}`),
 }
 
-// ── Anthropic direct (fallback demo) ─────────────────────────
-async function callAnthropicDirect(messages, system) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system,
-      messages,
-    }),
-  })
-  if (!res.ok) throw new Error(`Anthropic API error ${res.status}`)
-  const data = await res.json()
-  return data.content[0].text
-}
+// NOTA: chamadas à Anthropic API devem passar pelo backend (/api/v1/incidents/:id/messages/stream)
+// Nunca exponha API keys no frontend.
 
 // ── Session helpers ───────────────────────────────────────────
 function getUser()  { return JSON.parse(localStorage.getItem('cypher_user') || 'null') }
@@ -130,6 +116,6 @@ window.CypherAPI = {
   auth: authApi, dash: dashApi, inc: incApi,
   alert: alertApi, integ: integApi, client: clientApi,
   playbook: playbookApi, report: reportApi,
-  callAnthropicDirect, getUser, getToken, isLoggedIn,
+  getUser, getToken, isLoggedIn,
   saveSession, clearSession, DEMO_MODE,
 }
